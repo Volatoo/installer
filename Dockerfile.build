@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1@sha256:ecfaec9ed6d810b56388c508f4121597bfbba70d41a6dfeee4d8cad5f295fc32
+
+FROM --platform=$BUILDPLATFORM golang:1.24.6-alpine3.22@sha256:c8c5f95d64aa79b6547f3b626eb84b16a7ce18a139e3e9ca19a8c078b85ba80d AS build
+
+ARG VERSION
+ARG TARGETOS
+ARG TARGETARCH
+WORKDIR /src
+COPY . .
+RUN --network=none test -n "$VERSION" && \
+    go test ./... && \
+    CGO_ENABLED=0 GOOS="$TARGETOS" GOARCH="$TARGETARCH" go build -trimpath \
+      -ldflags="-buildid= -s -w -X main.version=$VERSION" \
+      -o /out/volatoo-installer ./cmd/volatoo-installer
+
+FROM scratch AS artifact
+COPY --from=build /out/volatoo-installer /volatoo-installer
