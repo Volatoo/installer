@@ -1,0 +1,34 @@
+FROM golang:1.24.6-alpine3.22@sha256:c8c5f95d64aa79b6547f3b626eb84b16a7ce18a139e3e9ca19a8c078b85ba80d AS build
+
+ARG VERSION=0.1.0-dev
+WORKDIR /src
+COPY . .
+RUN CGO_ENABLED=0 go build -trimpath \
+    -ldflags="-buildid= -s -w -X main.version=$VERSION" \
+    -o /out/volatoo-installer ./cmd/volatoo-installer
+
+FROM build AS build-amd64
+ARG VERSION=0.1.0-dev
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath \
+    -ldflags="-buildid= -s -w -X main.version=$VERSION" \
+    -o /out/volatoo-installer-amd64 ./cmd/volatoo-installer
+
+FROM alpine:3.22@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce
+
+RUN apk add --no-cache \
+    bash=5.2.37-r0 \
+    coreutils=9.7-r1 \
+    e2fsprogs=1.47.2-r2 \
+    e2fsprogs-extra=1.47.2-r2 \
+    python3=3.12.13-r0 \
+    sgdisk=1.0.10-r1 \
+    signify=32-r1 \
+    util-linux=2.41-r9 \
+    util-linux-misc=2.41-r9 \
+    zstd=1.5.7-r0
+
+COPY --from=build /out/volatoo-installer /usr/local/sbin/volatoo-installer
+COPY --from=build-amd64 /out/volatoo-installer-amd64 /usr/local/libexec/volatoo-installer-amd64
+COPY --chmod=0755 scripts/test-install-container.sh /usr/local/sbin/test-volatoo-installer
+
+ENTRYPOINT ["/usr/local/sbin/test-volatoo-installer"]

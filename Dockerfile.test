@@ -1,0 +1,8 @@
+FROM golang:1.24.6-alpine3.22@sha256:c8c5f95d64aa79b6547f3b626eb84b16a7ce18a139e3e9ca19a8c078b85ba80d
+
+RUN apk add --no-cache zstd=1.5.7-r0
+
+WORKDIR /src
+COPY . .
+
+ENTRYPOINT ["/src/scripts/test-container.sh"]
