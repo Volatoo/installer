@@ -39,7 +39,9 @@ scripts/test-docker.sh
 scripts/test-install-docker.sh
 ```
 
-The wrapper refuses every Docker context except `orbstack`.
+The wrappers require Docker context `orbstack` for local work. GitHub Actions
+Linux runners use their standard `default` context for CI-only builds and
+tests; every other local or CI context is rejected.
 
 Build the static amd64 executable reproducibly:
 

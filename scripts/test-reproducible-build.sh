@@ -2,11 +2,10 @@
 
 set -euo pipefail
 
-[[ $(docker context show) == orbstack ]] || {
-	echo "error: Docker context must be orbstack" >&2
-	exit 1
-}
 repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+# shellcheck source=scripts/require-docker-context.sh
+source "$repo_root/scripts/require-docker-context.sh"
+volatoo_require_docker_context
 work_dir=$(mktemp -d /tmp/volatoo-installer-reproducible.XXXXXX)
 cleanup()
 {
