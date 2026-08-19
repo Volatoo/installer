@@ -19,12 +19,10 @@ fi
 	echo "error: invalid installer version" >&2
 	exit 2
 }
-[[ $(docker context show) == orbstack ]] || {
-	echo "error: Docker context must be orbstack" >&2
-	exit 1
-}
-
 repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+# shellcheck source=scripts/require-docker-context.sh
+source "$repo_root/scripts/require-docker-context.sh"
+volatoo_require_docker_context
 output_name=$(basename -- "$output")
 output_directory=$(cd -- "$(dirname -- "$output")" && pwd)
 [[ $output_name != . && $output_name != .. && ! -e $output ]] || {

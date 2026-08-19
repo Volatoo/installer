@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: installer-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Check shell sources
+        run: shellcheck scripts/*.sh
+
+      - name: Test Docker context policy
+        run: scripts/test-docker-context-policy.sh
+
+      - name: Run Go tests and static build
+        run: scripts/test-docker.sh
+
+      - name: Verify reproducible amd64 build
+        run: scripts/test-reproducible-build.sh
+
+      - name: Run privileged installer integration
+        run: scripts/test-install-docker.sh
